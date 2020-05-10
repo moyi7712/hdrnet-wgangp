@@ -1,0 +1,29 @@
+Dataset:
+  image_type: 'png'
+  image_size: &image_size 512
+  resize_mode: 'both'
+  resize_method: 'NEAREST_NEIGHBOR'
+  num_parallel_calls: 6
+  batch_size: &batch_size 8
+  buffer_size: 4
+  shuffle: 8
+  filelist: 'filelist.json'
+  isPair: True
+  input_path: '/media/haiya/tr_data2/fivek/input'
+  label_path: '/media/haiya/tr_data2/fivek/E'
+  is_rot: True
+HyperPara:
+  learning_rate: 0.0001
+  batch_size: *batch_size
+  prefix: 'checkpoints'
+  DG_rate: 10
+  Model:
+    Generator:
+      luma_bins: 8
+      channel_multiplier: 3
+      spatial_bin: 16
+      input_size: 256
+      activation: 'relu'
+    Discriminator:
+      input_size: *image_size
+      activation: 'leaky_relu'

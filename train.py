@@ -7,7 +7,7 @@ from Network import Train_Strategy
 config = Config('Config.yaml')
 
 gpus = tf.config.experimental.list_physical_devices(device_type='GPU')
-for gpu in gpus:
+for gpu in gpus[:2]:
     tf.config.experimental.set_memory_growth(gpu, True)
 strategy = tf.distribute.MirroredStrategy()
 with strategy.scope():

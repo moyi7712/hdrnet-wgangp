@@ -1,7 +1,7 @@
 import tensorflow.keras as keras
 import tensorflow as tf
 import numpy as np
-from Layer import GuideMap, Conv2D, FullConnect
+from Layer import GuideMap, Conv2D, FullConnect, SelfAttention
 from Utils import apply_bg
 
 
@@ -22,12 +22,15 @@ class Generator(keras.Model):
                               norm='bn', name='ds_layer{}'.format(0),
                               activation=config.activation)
         ds_layer_list.append(layer_nonorm)
+
         for i in range(1, self.n_ds_layers):
             layer = Conv2D(kernel_num=cm * gd * (2 ** i), kernel_size=3, stride=2,
                            norm='bn', name='ds_layer{}'.format(i),
                            activation=config.activation)
             ds_layer_list.append(layer)
+
         self.ds_layer = ds_layer_list
+        self.SA = SelfAttention(filter_num=192,name='SA')
         '''global'''
         self.global_conv_1 = Conv2D(kernel_num=cm * gd * 8, kernel_size=3, stride=2,
                                     norm='bn', name='global_conv{}'.format(1),
@@ -59,7 +62,7 @@ class Generator(keras.Model):
         '''feature_collection'''
         for layer_op in self.ds_layer:
             tensor = layer_op(tensor)
-        feature_collection = tensor
+        feature_collection = self.SA(tensor)
         '''global'''
         tensor = self.global_conv_2(self.global_conv_1(feature_collection))
         shape = tensor.get_shape().as_list()

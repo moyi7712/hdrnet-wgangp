@@ -252,3 +252,38 @@ class InstanceNormalization(keras.layers.Layer):
         }
         base_config = super(InstanceNormalization, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
+
+
+class SelfAttention(keras.layers.Layer):
+    def __init__(self, filter_num,  name, strides=1):
+        super(SelfAttention, self).__init__()
+        self._name_ = name
+        self.conv_f = keras.layers.Conv2D(filters=filter_num//8, kernel_size=1, strides=strides, name=name+'_conv_f')
+        self.pool_f = keras.layers.MaxPool2D(name=name+'_pool_f')
+
+        self.conv_g = keras.layers.Conv2D(filters=filter_num//8, kernel_size=1, strides=strides, name=name+'_conv_g')
+        self.conv_h = keras.layers.Conv2D(filters=filter_num//2, kernel_size=1, strides=strides, name=name+'_conv_h')
+        self.pool_h = keras.layers.MaxPool2D(name=name+'_pool_h')
+        self.conv_atten = keras.layers.Conv2D(filters=filter_num,kernel_size=1, strides=strides, name=name+'_conv_attention')
+
+
+    def build(self, input_shape):
+
+        self.gamma = self.add_weight(self._name_+'_gamma', shape=(1,), initializer=keras.initializers.constant(0))
+
+    def hw_flatten(self,x):
+        return tf.reshape(x, shape=[x.shape[0], -1, x.shape[-1]])
+
+    def call(self, inputs, **kwargs):
+        bs, width, height, channel = inputs.get_shape().as_list()
+        f = self.pool_f(self.conv_f(inputs))
+        g = self.conv_g(inputs)
+        h = self.pool_h(self.conv_h(inputs))
+        s = tf.matmul(self.hw_flatten(g), self.hw_flatten(f), transpose_b=True)
+        beta = tf.nn.softmax(s)  # attention map
+        o = tf.matmul(beta, self.hw_flatten(h))  # [bs, N, C]
+
+        o = tf.reshape(o, shape=[bs, height, width, channel // 2])  # [bs, h, w, C]
+        o = self.conv_atten(o)
+        output = self.gamma * o + inputs
+        return output

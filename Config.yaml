@@ -1,5 +1,5 @@
 Dataset:
-  image_type: 'png'
+  image_type: 'jpg'
   image_size: &image_size 512
   resize_mode: 'both'
   resize_method: 'NEAREST_NEIGHBOR'
@@ -7,7 +7,7 @@ Dataset:
   batch_size: &batch_size 8
   buffer_size: 4
   shuffle: 8
-  filelist: 'filelist.json'
+  filelist: 'filelist_jpg.json'
   isPair: True
   input_path: '/media/haiya/tr_data2/fivek/input'
   label_path: '/media/haiya/tr_data2/fivek/E'
